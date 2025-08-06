@@ -13,6 +13,11 @@ mysql:
     - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
   securityContext: {}
   containerSecurityContext: {}
+  # MySQL credentials
+  username: "merico"
+  password: "merico"
+  database: "lake"
+  rootPassword: "admin"
 
 # OpenShift security context fixes
 grafana:
@@ -24,7 +29,33 @@ grafana:
   # Disable the init container that requires root, which is blocked by default.
   initChownData:
     enabled: false
-
+  # Environment variables for MySQL configuration and Google OAuth
+  env:
+    TZ: "UTC"
+    MYSQL_URL: "devlake-mysql:3306"
+    MYSQL_DATABASE: "lake"
+    MYSQL_USER: "merico"
+    # Grafana server configuration for subpath serving
+    GF_SERVER_SERVE_FROM_SUBPATH: "true"
+    GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
+  # Grafana configuration using grafana.ini
+  grafana.ini:
+    server:
+      serve_from_subpath: "true"
+      root_url: "%(protocol)s://%(domain)s/grafana/"
+    # auth.google:
+    #   enabled: true
+    #   client_id: "add-here"
+    #   client_secret: "add-here"
+    #   scopes: "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid"
+    #   auth_url: "https://accounts.google.com/o/oauth2/auth"
+    #   token_url: "https://accounts.google.com/o/oauth2/token"
+    #   api_url: "https://www.googleapis.com/oauth2/v1/userinfo"
+    #   allowed_domains: "redhat.com"
+    #   allow_sign_up: true
+    #   # Explicit redirect URI to ensure correct URL
+    #   redirect_uri: "https://devlake-ui-devlake.apps.rosa.konflux-qe.zmr9.p3.openshiftapps.com/grafana"
+  
 lake:
   securityContext: {}
   containerSecurityContext: {}
@@ -34,11 +65,22 @@ lake:
     DISABLED_REMOTE_PLUGINS: "true"
     API_REQUESTS_PER_HOUR: "10000"
     LOGGING_DIR: "/tmp"
+  # Use both ConfigMap and Secret for MySQL configuration (following PR #337 pattern)
+  envFrom:
+    - configMapRef:
+        name: devlake-config
+    - secretRef:
+        name: devlake-mysql-auth
 
 ui:
   securityContext: {}
   containerSecurityContext: {}
-
+  basicAuth:
+    enabled: true
+    user: admin
+    password: admin
+    autoCreateSecret: true
+    secretName: ""
 # Use ClusterIP services (routes will be created separately)
 service:
   type: ClusterIP
@@ -47,7 +89,12 @@ service:
 ingress:
   enabled: false
 
-# OpenShift Routes
+# Ensure secrets are created properly
+option:
+  autoCreateSecret: true
+  connectionSecretName: "devlake-mysql-auth"
+
+# OpenShift Routes and Configuration
 extraResources:
   - apiVersion: route.openshift.io/v1
     kind: Route
