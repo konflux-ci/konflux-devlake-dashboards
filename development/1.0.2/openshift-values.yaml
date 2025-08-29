@@ -1,26 +1,18 @@
 # OpenShift-specific modifications for DevLake
 # Apply this on top of default values: helm upgrade --install devlake devlake/devlake -f openshift-values.yaml
-
-# MySQL GROUP BY fix for Grafana compatibility
 mysql:
-  # MySQL Configuration to fix GROUP BY issues
-  # Add environment variable for SQL mode
-  extraEnvVars:
-    - name: MYSQL_SQL_MODE
-      value: "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
-  # Add SQL mode to MySQL arguments
-  extraArgs:
-    - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
-  securityContext: {}
-  containerSecurityContext: {}
-  # MySQL credentials
-  username: "merico"
-  password: "merico"
-  database: "lake"
-  rootPassword: "admin"
+  # if use external mysql server, please set true
+  # by default using false, chart will create a single mysql instance
+  useExternal: true
+  # External MySQL server configuration
+  externalServer: "konflux-devlake-database.ch82sokyapv1.us-west-2.rds.amazonaws.com"  # Replace with your actual MySQL host
+  externalPort: 3306
 
 # OpenShift security context fixes
 grafana:
+  image:
+    repository: devlake.docker.scarf.sh/apache/devlake-dashboard
+    tag: v1.0.2
   podSecurityContext: {}
   securityContext:
     fsGroup: null
@@ -29,12 +21,11 @@ grafana:
   # Disable the init container that requires root, which is blocked by default.
   initChownData:
     enabled: false
-  # Environment variables for MySQL configuration and Google OAuth
+  envFromSecrets:
+    - name: "devlake-database-auth"
+  # Environment variables for MySQL configuration
   env:
     TZ: "UTC"
-    MYSQL_URL: "devlake-mysql:3306"
-    MYSQL_DATABASE: "lake"
-    MYSQL_USER: "merico"
     # Grafana server configuration for subpath serving
     GF_SERVER_SERVE_FROM_SUBPATH: "true"
     GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
@@ -63,14 +54,15 @@ lake:
   envs:
     REMOTE_PLUGIN_DIR: ""
     DISABLED_REMOTE_PLUGINS: "true"
-    API_REQUESTS_PER_HOUR: "10000"
+    API_REQUESTS_PER_HOUR: "100000"
     LOGGING_DIR: "/tmp"
   # Use both ConfigMap and Secret for MySQL configuration (following PR #337 pattern)
   envFrom:
     - configMapRef:
         name: devlake-config
     - secretRef:
-        name: devlake-mysql-auth
+        name: devlake-database-auth
+  # Disable all init containers for lake
 
 ui:
   securityContext: {}
@@ -91,8 +83,9 @@ ingress:
 
 # Ensure secrets are created properly
 option:
-  autoCreateSecret: true
-  connectionSecretName: "devlake-mysql-auth"
+  autoCreateSecret: false
+  database: mysql
+  connectionSecretName: "devlake-database-auth"
 
 # OpenShift Routes and Configuration
 extraResources:
