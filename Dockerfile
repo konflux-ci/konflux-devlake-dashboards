@@ -23,7 +23,21 @@
 #While incubation status is not necessarily a reflection of the completeness or stability of the code,
 #it does indicate that the project has yet to be fully endorsed by the ASF.
 
-FROM grafana/grafana:11.6.2
+FROM registry.redhat.io/ubi9/ubi:9.4
+
+# Install Grafana
+RUN dnf update -y && \
+    dnf install -y wget && \
+    wget https://dl.grafana.com/oss/release/grafana-11.6.2-1.x86_64.rpm && \
+    dnf install -y grafana-11.6.2-1.x86_64.rpm && \
+    rm grafana-11.6.2-1.x86_64.rpm && \
+    dnf clean all
+
+# Create necessary directories
+RUN mkdir -p /etc/grafana/provisioning/dashboards && \
+    mkdir -p /etc/grafana/provisioning/datasources && \
+    mkdir -p /etc/grafana/dashboards
+
 COPY ./provisioning/dashboards /etc/grafana/provisioning/dashboards
 COPY ./provisioning/datasources /etc/grafana/provisioning/datasources
 COPY ./dashboards /etc/grafana/dashboards
@@ -34,4 +48,12 @@ ENV GF_SERVER_SERVE_FROM_SUB_PATH=true
 ENV GF_DASHBOARDS_JSON_ENABLED=true
 ENV GF_LIVE_ALLOWED_ORIGINS='*'
 ENV GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/Homepage.json
+
+# Install Grafana plugins
 RUN grafana-cli plugins install grafana-piechart-panel
+
+# Expose Grafana port
+EXPOSE 3000
+
+# Start Grafana
+CMD ["grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "cfg:default.paths.logs=/var/log/grafana", "cfg:default.paths.data=/var/lib/grafana", "cfg:default.paths.plugins=/var/lib/grafana/plugins"]
