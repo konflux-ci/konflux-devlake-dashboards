@@ -4,12 +4,12 @@ A comprehensive collection of Grafana dashboards for [Apache DevLake](https://de
 
 ## 🚀 Quick Start
 
-### Using Docker
+### Using Podman
 
 ```bash
 # Build and run the Grafana container with all dashboards
-docker build -t devlake-grafana .
-docker run -p 3000:3000 devlake-grafana
+podman build -t devlake-grafana .
+podman run -p 3000:3000 devlake-grafana
 ```
 
 Access Grafana at `http://localhost:3000` (admin/admin)
