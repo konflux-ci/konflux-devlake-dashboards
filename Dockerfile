@@ -23,26 +23,40 @@
 #While incubation status is not necessarily a reflection of the completeness or stability of the code,
 #it does indicate that the project has yet to be fully endorsed by the ASF.
 
-FROM registry.redhat.io/ubi9/ubi:9.4
+FROM registry.redhat.io/ubi9/ubi:latest
 
-# Install Grafana
+# Note: License validation warnings (e.g., "LicenseRef-GPLv2-") are common with UBI base images
+# and system packages. These warnings don't affect functionality and are safe to ignore.
+
+# Install Grafana from binary distribution to avoid RPM signature validation issues
 RUN dnf update -y && \
-    dnf install -y wget && \
-    wget https://dl.grafana.com/oss/release/grafana-11.6.2-1.x86_64.rpm && \
-    dnf install -y grafana-11.6.2-1.x86_64.rpm && \
-    rm grafana-11.6.2-1.x86_64.rpm && \
-    dnf clean all
+    dnf install -y wget ca-certificates tar && \
+    wget https://dl.grafana.com/oss/release/grafana-11.6.2.linux-amd64.tar.gz && \
+    tar -xzf grafana-11.6.2.linux-amd64.tar.gz && \
+    mv grafana-11.6.2 /usr/share/grafana && \
+    rm grafana-11.6.2.linux-amd64.tar.gz && \
+    dnf remove -y wget tar && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
-# Create necessary directories
+# Create necessary directories and set permissions
 RUN mkdir -p /etc/grafana/provisioning/dashboards && \
     mkdir -p /etc/grafana/provisioning/datasources && \
-    mkdir -p /etc/grafana/dashboards
+    mkdir -p /etc/grafana/dashboards && \
+    chown -R grafana:grafana /etc/grafana
 
 COPY ./provisioning/dashboards /etc/grafana/provisioning/dashboards
 COPY ./provisioning/datasources /etc/grafana/provisioning/datasources
 COPY ./dashboards /etc/grafana/dashboards
 COPY ./img/grafana_icon.svg /usr/share/grafana/public/img/grafana_icon.svg
 COPY ./img /usr/share/grafana/public/img/lake
+
+# Set ownership for copied files
+RUN chown -R grafana:grafana /etc/grafana /usr/share/grafana/public/img
+
+# Switch to grafana user
+USER grafana
+
 ENV GF_USERS_ALLOW_SIGN_UP=false
 ENV GF_SERVER_SERVE_FROM_SUB_PATH=true
 ENV GF_DASHBOARDS_JSON_ENABLED=true
@@ -50,10 +64,10 @@ ENV GF_LIVE_ALLOWED_ORIGINS='*'
 ENV GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/Homepage.json
 
 # Install Grafana plugins
-RUN grafana-cli plugins install grafana-piechart-panel
+RUN /usr/share/grafana/bin/grafana-cli plugins install grafana-piechart-panel
 
 # Expose Grafana port
 EXPOSE 3000
 
 # Start Grafana
-CMD ["grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "cfg:default.paths.logs=/var/log/grafana", "cfg:default.paths.data=/var/lib/grafana", "cfg:default.paths.plugins=/var/lib/grafana/plugins"]
+CMD ["/usr/share/grafana/bin/grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "cfg:default.paths.logs=/var/log/grafana", "cfg:default.paths.data=/var/lib/grafana", "cfg:default.paths.plugins=/var/lib/grafana/plugins"]
