@@ -23,51 +23,39 @@
 #While incubation status is not necessarily a reflection of the completeness or stability of the code,
 #it does indicate that the project has yet to be fully endorsed by the ASF.
 
-FROM registry.redhat.io/ubi9/ubi:latest
+FROM registry.access.redhat.com/ubi9/ubi:9.6-1758184894@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283
 
-# Note: License validation warnings (e.g., "LicenseRef-GPLv2-") are common with UBI base images
-# and system packages. These warnings don't affect functionality and are safe to ignore.
+ENV SUMMARY="Grafana is an open source, feature rich metrics dashboard and graph editor" \
+    DESCRIPTION="Grafana is an open source, feature rich metrics dashboard and graph editor for Graphite, Elasticsearch, OpenTSDB, Prometheus, InfluxDB and Performance Co-Pilot." \
+    VERSION=11
 
-# Install Grafana from binary distribution to avoid RPM signature validation issues
-RUN dnf update -y && \
-    dnf install -y wget ca-certificates tar && \
-    wget https://dl.grafana.com/oss/release/grafana-11.6.2.linux-amd64.tar.gz && \
-    tar -xzf grafana-11.6.2.linux-amd64.tar.gz && \
-    mv grafana-11.6.2 /usr/share/grafana && \
-    rm grafana-11.6.2.linux-amd64.tar.gz && \
-    dnf remove -y wget tar && \
+LABEL name="rhel9/grafana" \
+      summary="${SUMMARY}" \
+      description="${DESCRIPTION}" \
+      version="$VERSION" \
+      usage="podman run -d --name grafana -p 3000:3000 -v grafana-data:/var/lib/grafana registry.redhat.io/rhel9/grafana" \
+      maintainer="Grafana Maintainers <grafana-maint@redhat.com>" \
+      help="cat /README.md" \
+      com.redhat.component="grafana-container" \
+      io.k8s.display-name="Grafana" \
+      io.k8s.description="${DESCRIPTION}" \
+      io.openshift.expose-services="3000:grafana" \
+      io.openshift.tags="grafana,monitoring,dashboard"
+
+ENV GF_INSTALL_PLUGINS=""
+
+RUN useradd -u 1001 -g 0 -r -d /usr/share/grafana -s /sbin/nologin grafana && \
+    dnf upgrade -y && \
+    dnf install -y --setopt=tsflags=nodocs grafana grafana-pcp && \
     dnf clean all && \
-    rm -rf /var/cache/dnf
+    chgrp -R 0 /etc/grafana /var/lib/grafana /var/log/grafana && \
+    chmod -R g=u /var/lib/grafana /var/log/grafana
 
-# Create necessary directories and set permissions
-RUN mkdir -p /etc/grafana/provisioning/dashboards && \
-    mkdir -p /etc/grafana/provisioning/datasources && \
-    mkdir -p /etc/grafana/dashboards && \
-    chown -R grafana:grafana /etc/grafana
+COPY root /
 
-COPY ./provisioning/dashboards /etc/grafana/provisioning/dashboards
-COPY ./provisioning/datasources /etc/grafana/provisioning/datasources
-COPY ./dashboards /etc/grafana/dashboards
-COPY ./img/grafana_icon.svg /usr/share/grafana/public/img/grafana_icon.svg
-COPY ./img /usr/share/grafana/public/img/lake
-
-# Set ownership for copied files
-RUN chown -R grafana:grafana /etc/grafana /usr/share/grafana/public/img
-
-# Switch to grafana user
-USER grafana
-
-ENV GF_USERS_ALLOW_SIGN_UP=false
-ENV GF_SERVER_SERVE_FROM_SUB_PATH=true
-ENV GF_DASHBOARDS_JSON_ENABLED=true
-ENV GF_LIVE_ALLOWED_ORIGINS='*'
-ENV GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/Homepage.json
-
-# Install Grafana plugins
-RUN /usr/share/grafana/bin/grafana-cli plugins install grafana-piechart-panel
-
-# Expose Grafana port
+VOLUME ["/var/lib/grafana"]
 EXPOSE 3000
 
-# Start Grafana
-CMD ["/usr/share/grafana/bin/grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "cfg:default.paths.logs=/var/log/grafana", "cfg:default.paths.data=/var/lib/grafana", "cfg:default.paths.plugins=/var/lib/grafana/plugins"]
+USER 1001
+WORKDIR /usr/share/grafana
+ENTRYPOINT ["/usr/bin/run-grafana"]
