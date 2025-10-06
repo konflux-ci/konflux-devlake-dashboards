@@ -1428,8 +1428,8 @@
     "timepicker": {
       "hidden": true
     },
-    "timezone": "Asia/Kolkata",
-    "title": "Jira",
+    "timezone": "Europe/Berlin",
+    "title": "Jira Sprint Board",
     "uid": "c662f7fb-6c02-40d1-85a3-e9164d0366be",
     "version": 2,
     "weekStart": ""
