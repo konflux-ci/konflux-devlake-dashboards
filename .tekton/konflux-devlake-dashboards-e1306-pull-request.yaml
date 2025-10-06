@@ -24,7 +24,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/rh-konflux-devprod-tenant/konflux-devlake-dashboards-e1306:on-pr-{{revision}}
+    value: quay.io/konflux-ci/konflux-devprod/devlake-dashboards:on-pr-{{revision}}
   - name: image-expires-after
     value: 5d
   - name: dockerfile
