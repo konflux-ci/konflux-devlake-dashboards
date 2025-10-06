@@ -40,7 +40,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "# Welcome\n\n## Quick Links\n\n  - <a href=\"/d/ZF6abXX7z/engineering-overview\" target=\"_blank\">📊 Engineering Overview</a> - High-level engineering productivity metrics\n  - <a href=\"/d/qNo8_0M4z/dora\" target=\"_blank\">🚀 DORA Metrics</a> - DevOps Research and Assessment metrics\n",
+        "content": "# Welcome\n\n## Quick Links\n\n  - <a href=\"/d/engineering-overview\" target=\"_blank\">📊 Engineering Overview</a> - High-level engineering productivity metrics\n  - <a href=\"/d/dora\" target=\"_blank\">🚀 DORA Metrics</a> - DevOps Research and Assessment metrics\n",
         "mode": "markdown"
       },
       "pluginVersion": "9.5.15",
@@ -74,7 +74,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## 🎯 Key Dashboards\n\n- [📊 Engineering Overview](/d/ZF6abXX7z/engineering-overview)\n- [🚀 DORA Metrics](/d/qNo8_0M4z/dora)\n\n*Click to access the most important dashboards*",
+        "content": "## 🎯 Key Dashboards\n\n- [📊 Engineering Overview](/d/engineering-overview)\n- [🚀 DORA Metrics](/d/dora)\n\n*Click to access the most important dashboards*",
         "mode": "markdown"
       },
       "pluginVersion": "9.5.15",
