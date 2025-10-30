@@ -40,7 +40,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## AI Impact Report Dashboard\n\nThis dashboard provides insights into AI-assisted development activities by analyzing pull request commits for AI assistance markers (`Assisted-by:` and `Generated-by:`).\n\n**Key Metrics:**\n- **Total Commits**, Number of distinct commits in pull requests for the selected project(s)\n- **AI Commits**, Number of commits marked with AI assistance indicators\n- **AI Adoption Rate**, Percentage of commits that show AI assistance\n\nThe dashboard automatically filters out bot commits and test repositories to provide accurate human developer metrics.\n\n> **⚠️ Beta Status:** This dashboard is currently in beta. Metrics and visualizations may be refined based on feedback and usage patterns. Please report any issues or suggestions for improvement.",
+        "content": "## AI Commits Impact Report Dashboard\n\nThis dashboard provides insights into AI-assisted development activities by analyzing pull request commits for AI assistance markers (`Assisted-by:` and `Generated-by:`).\n\n**Key Metrics:**\n- **Total Commits**, Number of distinct commits in pull requests for the selected project(s)\n- **AI Commits**, Number of commits marked with AI assistance indicators\n- **AI Adoption Rate**, Percentage of commits that show AI assistance\n\nThe dashboard automatically filters out bot commits and test repositories to provide accurate human developer metrics.\n\n> **⚠️ Beta Status:** This dashboard is currently in beta. Metrics and visualizations may be refined based on feedback and usage patterns. Please report any issues or suggestions for improvement.",
         "mode": "markdown"
       },
       "pluginVersion": "11.6.6",
