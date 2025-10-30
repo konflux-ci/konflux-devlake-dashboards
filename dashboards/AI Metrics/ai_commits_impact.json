@@ -1,0 +1,186 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "## AI Impact Report Dashboard\n\nThis dashboard provides insights into AI-assisted development activities by analyzing pull request commits for AI assistance markers (`Assisted-by:` and `Generated-by:`).\n\n**Key Metrics:**\n- **Total Commits**, Number of distinct commits in pull requests for the selected project(s)\n- **AI Commits**, Number of commits marked with AI assistance indicators\n- **AI Adoption Rate**, Percentage of commits that show AI assistance\n\nThe dashboard automatically filters out bot commits and test repositories to provide accurate human developer metrics.\n\n> **⚠️ Beta Status:** This dashboard is currently in beta. Metrics and visualizations may be refined based on feedback and usage patterns. Please report any issues or suggestions for improvement.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.6.6",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "queryType": "randomWalk",
+          "refId": "A"
+        }
+      ],
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "P430005175C4C7810"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.6.6",
+      "targets": [
+        {
+          "dataset": "lake",
+          "datasource": {
+            "type": "mysql",
+            "uid": "P430005175C4C7810"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    COUNT(DISTINCT prc.commit_sha) as total_commits,\n    COUNT(DISTINCT CASE \n        WHEN (CAST(COALESCE(c.message, '') AS CHAR) LIKE '%Assisted-by:%' OR CAST(COALESCE(c.message, '') AS CHAR) LIKE '%assisted-by:%' OR CAST(COALESCE(c.message, '') AS CHAR) LIKE '%Generated-by:%' OR CAST(COALESCE(c.message, '') AS CHAR) LIKE '%generated-by:%')\n        OR (CAST(pr.description AS CHAR) LIKE '%Assisted-by:%' OR CAST(pr.description AS CHAR) LIKE '%assisted-by:%' OR CAST(pr.description AS CHAR) LIKE '%Generated-by:%' OR CAST(pr.description AS CHAR) LIKE '%generated-by:%')\n        THEN prc.commit_sha \n    END) as ai_commits,\n    ROUND(COUNT(DISTINCT CASE \n        WHEN (CAST(COALESCE(c.message, '') AS CHAR) LIKE '%Assisted-by:%' OR CAST(COALESCE(c.message, '') AS CHAR) LIKE '%assisted-by:%' OR CAST(COALESCE(c.message, '') AS CHAR) LIKE '%Generated-by:%' OR CAST(COALESCE(c.message, '') AS CHAR) LIKE '%generated-by:%')\n        OR (CAST(pr.description AS CHAR) LIKE '%Assisted-by:%' OR CAST(pr.description AS CHAR) LIKE '%assisted-by:%' OR CAST(pr.description AS CHAR) LIKE '%Generated-by:%' OR CAST(pr.description AS CHAR) LIKE '%generated-by:%')\n        THEN prc.commit_sha \n    END) * 100.0 / NULLIF(COUNT(DISTINCT prc.commit_sha), 0), 2) as ai_adoption_rate_percent\nFROM lake.pull_request_commits prc\nJOIN lake.pull_requests pr ON pr.id = prc.pull_request_id\nJOIN lake.repos r ON pr.base_repo_id = r.id\nJOIN lake.project_mapping pm ON r.id = pm.row_id AND pm.`table` = 'repos'\nLEFT JOIN lake.commits c ON prc.commit_sha = c.sha\nWHERE pm.project_name in (${project})\nAND r.name NOT IN ('konflux-ci/test-repo', 'konflux-ci/merge-queue-release-test', 'konflux-ci/multi-arch-konflux-sample', 'konflux-ci/to-be-deleted', 'konflux-ci/multi-version-konflux-stage-sample')\nAND prc.commit_authored_date >= $__timeFrom()\nAND prc.commit_authored_date <= $__timeTo()\nAND pr.created_date >= $__timeFrom()\nAND pr.created_date <= $__timeTo()\nAND prc.commit_author_name NOT IN ('red-hat-konflux[bot]', 'red-hat-konflux-kflux-prd-rh02[bot]', 'red-hat-konflux', 'red-hat-konflux-kflux-prd-rh02', 'dependabot[bot]', 'dependabot', 'konflux-ci-test-app[bot]', 'renovate[bot]', 'renovate', 'openshift-ci[bot]', 'openshift-ci', 'rh-tap-build-team[bot]', 'codecov[bot]', 'codecov', 'coderabbitai[bot]', 'coderabbitai', 'github-actions[bot]', 'github-actions', 'github-advanced-security[bot]', 'github-advanced-security', 'red-hat-konflux-kflux-prd-rh03[bot]', 'sourcery-ai[bot]', 'sourcery-ai', 'gemini-code-assist[bot]', 'gemini-code-assist', 'build-trigger', 'daily-build-trigger', 'Konflux Release')\nAND (prc.commit_author_email NOT LIKE '%[bot]@users.noreply.github.com' OR prc.commit_author_email IS NULL);",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "AI Impact Statistics",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 41,
+  "tags": [
+    "AI",
+    "DevLake"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false
+        },
+        "datasource": "mysql",
+        "definition": "select distinct name from projects",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Project",
+        "multi": true,
+        "name": "project",
+        "options": [],
+        "query": "select distinct name from projects",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "AI Commits Impact Report Dashboard",
+  "uid": "ai-commits-impact-report",
+  "version": 1
+}
