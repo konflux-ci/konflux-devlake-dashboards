@@ -1,0 +1,1541 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Tekton CI",
+          "url": "https://tekton.dev"
+        }
+      ],
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "- **Use Cases**: This dashboard provides comprehensive Tekton CI/CD metrics for leaders and engineering teams\n- **Data Source Required**: TestRegistry plugin with Tekton CI connection\n- **Filters**: Select by DevLake Project, Repository (shows organization/repository), Job Name, and Event Type (pull_request/push)\n- **Metrics Included**:\n  - Pipeline execution metrics (success rate, duration, volume)\n  - Task performance analysis\n  - Test results and quality metrics\n  - Repository and event type breakdowns\n  - Trends and patterns over time",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "queryType": "randomWalk",
+          "refId": "A"
+        }
+      ],
+      "title": "Dashboard Introduction",
+      "type": "text"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 2,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Executive KPIs",
+      "type": "row"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Total number of Tekton pipeline runs executed",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT j.job_id) as total_pipelines FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type})",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Pipeline Runs",
+      "type": "stat"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Percentage of successful pipeline runs",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND(SUM(CASE WHEN j.result = 'SUCCESS' THEN 1 ELSE 0 END) * 1.0 / COUNT(*), 4) as success_rate FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type})",
+          "refId": "A"
+        }
+      ],
+      "title": "Pipeline Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Average pipeline execution duration",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND(AVG(j.duration_sec) / 60, 2) as avg_duration_minutes FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND j.duration_sec IS NOT NULL AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type})",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Pipeline Duration",
+      "type": "stat"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Total number of test cases executed",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) as total_tests FROM ci_test_cases tc INNER JOIN ci_test_jobs j ON tc.job_id = j.job_id AND tc.connection_id = j.connection_id LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND tc.status IN ('passed', 'failed') AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type})",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Tests Executed",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 7,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Pipeline Trends",
+      "type": "row"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Pipeline run count over time by result status",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/SUCCESS/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/FAILURE/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/ABORTED/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroup(j.finished_at, $__interval) as time, j.result as metric, COUNT(*) as value FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY $__timeGroup(j.finished_at, $__interval), j.result ORDER BY time",
+          "refId": "A",
+          "timeColumn": "finished_at",
+          "timeColumnType": "timestamp"
+        }
+      ],
+      "title": "Pipeline Runs Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Average pipeline duration trend",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroup(j.finished_at, $__interval) as time, ROUND(AVG(j.duration_sec) / 60, 2) as avg_duration_minutes FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND j.duration_sec IS NOT NULL AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY $__timeGroup(j.finished_at, $__interval) ORDER BY time",
+          "refId": "A",
+          "timeColumn": "finished_at",
+          "timeColumnType": "timestamp"
+        }
+      ],
+      "title": "Average Pipeline Duration Trend",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 10,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Task Performance Analysis",
+      "type": "row"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Average duration by task name",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "execution_count"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "success_count"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure_count"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "success_rate"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_duration_minutes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "max_duration_minutes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "min_duration_minutes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 11,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "avg_duration_minutes"
+          }
+        ]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT tt.task_name, COUNT(*) as execution_count, ROUND(AVG(tt.duration_sec) / 60, 2) as avg_duration_minutes, ROUND(MAX(tt.duration_sec) / 60, 2) as max_duration_minutes, ROUND(MIN(tt.duration_sec) / 60, 2) as min_duration_minutes, SUM(CASE WHEN tt.status = 'Succeeded' THEN 1 ELSE 0 END) as success_count, SUM(CASE WHEN tt.status = 'Failed' THEN 1 ELSE 0 END) as failure_count, ROUND(SUM(CASE WHEN tt.status = 'Succeeded' THEN 1 ELSE 0 END) * 1.0 / COUNT(*), 4) as success_rate FROM ci_tekton_tasks tt INNER JOIN ci_test_jobs j ON tt.job_id = j.job_id AND tt.connection_id = j.connection_id LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY tt.task_name ORDER BY avg_duration_minutes DESC LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Task Performance Summary",
+      "type": "table"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Top slowest tasks by average duration",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 300
+              },
+              {
+                "color": "red",
+                "value": 600
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT tt.task_name, ROUND(AVG(tt.duration_sec), 2) as avg_duration_sec FROM ci_tekton_tasks tt INNER JOIN ci_test_jobs j ON tt.job_id = j.job_id AND tt.connection_id = j.connection_id LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY tt.task_name ORDER BY avg_duration_sec DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "task_name": 0,
+              "avg_duration_sec": 1
+            },
+            "renameByName": {
+              "avg_duration_sec": "Duration (s)",
+              "task_name": "Task Name"
+            }
+          }
+        }
+      ],
+      "title": "Top 10 Slowest Tasks",
+      "type": "barchart"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 13,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Test Quality Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Count of failed test cases over time - useful for identifying trends in test stability",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed_tests"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroup(j.finished_at, $__interval) as time, COUNT(*) as failed_tests FROM ci_test_cases tc INNER JOIN ci_test_jobs j ON tc.job_id = j.job_id AND tc.connection_id = j.connection_id LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND tc.status = 'failed' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY $__timeGroup(j.finished_at, $__interval) ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed Tests Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Percentage of tests that passed over time. Higher is better (closer to 100%).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 50,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "test_pass_rate"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "min",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroup(j.finished_at, $__interval) as time, ROUND(SUM(CASE WHEN tc.status = 'passed' THEN 1 ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN tc.status IN ('passed', 'failed') THEN 1 ELSE 0 END), 0), 4) as test_pass_rate FROM ci_test_cases tc INNER JOIN ci_test_jobs j ON tc.job_id = j.job_id AND tc.connection_id = j.connection_id LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND tc.status IN ('passed', 'failed') AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY $__timeGroup(j.finished_at, $__interval) ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Test Pass Rate Trend",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 19,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Detailed Pipeline List",
+      "type": "row"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Recent pipeline executions with details",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            },
+            {
+              "options": {
+                "SUCCESS": {
+                  "color": "green",
+                  "index": 1
+                },
+                "FAILURE": {
+                  "color": "red",
+                  "index": 0
+                },
+                "ABORTED": {
+                  "color": "orange",
+                  "index": 2
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "result"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duration_minutes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "view_url"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "link"
+              },
+              {
+                "id": "custom.inspect",
+                "value": false
+              },
+              {
+                "id": "custom.openInNewTab",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "id": 20,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "finished_at"
+          }
+        ]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT j.job_id, j.job_name, CONCAT(j.organization, '/', j.repository) as repository, j.trigger_type as event_type, j.result, ROUND(j.duration_sec / 60, 2) as duration_minutes, j.commit_sha, j.pull_request_number, j.finished_at, j.view_url FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) ORDER BY j.finished_at DESC LIMIT 100",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Pipeline Executions",
+      "type": "table"
+    },
+    {
+      "datasource": "mysql",
+      "description": "Top flaky tests with failure percentage (excluding skipped tests)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "orange",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "test_name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 400
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_executions"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed_count"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-GrYlRd"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "passed_count"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure_rate"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-GrYlRd"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "id": 21,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "failure_rate"
+          }
+        ]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT tc.name as test_name, COUNT(*) as total_executions, SUM(CASE WHEN tc.status = 'failed' THEN 1 ELSE 0 END) as failed_count, SUM(CASE WHEN tc.status = 'passed' THEN 1 ELSE 0 END) as passed_count, ROUND(SUM(CASE WHEN tc.status = 'failed' THEN 1 ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN tc.status IN ('passed', 'failed') THEN 1 ELSE 0 END), 0), 4) as failure_rate FROM ci_test_cases tc INNER JOIN ci_test_jobs j ON tc.job_id = j.job_id AND tc.connection_id = j.connection_id LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE $__timeFilter(j.finished_at) AND j.job_type = 'tekton' AND tc.status IN ('passed', 'failed') AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) AND j.trigger_type IN (${event_type}) GROUP BY tc.name HAVING SUM(CASE WHEN tc.status = 'failed' THEN 1 ELSE 0 END) > 0 AND SUM(CASE WHEN tc.status = 'passed' THEN 1 ELSE 0 END) > 0 ORDER BY failure_rate DESC, failed_count DESC LIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Flaky Tests",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [
+    "Data Source Dashboard",
+    "Tekton",
+    "CI/CD"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": [],
+          "value": []
+        },
+        "datasource": "mysql",
+        "definition": "SELECT DISTINCT name FROM projects ORDER BY name",
+        "hide": 0,
+        "includeAll": false,
+        "label": "DevLake Project",
+        "multi": true,
+        "name": "project",
+        "options": [],
+        "query": "SELECT DISTINCT name FROM projects ORDER BY name",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": "",
+        "current": {
+          "selected": false,
+          "text": [],
+          "value": []
+        },
+        "datasource": "mysql",
+        "definition": "SELECT DISTINCT CONCAT(CONCAT(j.organization, '/', j.repository), '--', j.scope_id) as text FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'tekton' AND j.scope_id IS NOT NULL AND j.scope_id != '' AND pm.project_name IN (${project}) ORDER BY text",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Repository",
+        "multi": true,
+        "name": "scope_id",
+        "options": [],
+        "query": "SELECT DISTINCT CONCAT(CONCAT(j.organization, '/', j.repository), '--', j.scope_id) as text FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'tekton' AND j.scope_id IS NOT NULL AND j.scope_id != '' AND pm.project_name IN (${project}) ORDER BY text",
+        "refresh": 1,
+        "regex": "/^(?<text>.*)--(?<value>.*)$/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": [],
+          "value": []
+        },
+        "datasource": "mysql",
+        "definition": "SELECT DISTINCT j.job_name FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'tekton' AND j.job_name IS NOT NULL AND j.job_name != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) ORDER BY j.job_name",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Job Name",
+        "multi": true,
+        "name": "job_name",
+        "options": [],
+        "query": "SELECT DISTINCT j.job_name FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'tekton' AND j.job_name IS NOT NULL AND j.job_name != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) ORDER BY j.job_name",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": [],
+          "value": []
+        },
+        "datasource": "mysql",
+        "definition": "SELECT DISTINCT j.trigger_type as event_type FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'tekton' AND j.trigger_type IS NOT NULL AND j.trigger_type != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) ORDER BY j.trigger_type",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Event Type",
+        "multi": true,
+        "name": "event_type",
+        "options": [],
+        "query": "SELECT DISTINCT j.trigger_type as event_type FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'tekton' AND j.trigger_type IS NOT NULL AND j.trigger_type != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) ORDER BY j.trigger_type",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6M",
+    "to": "now"
+  },
+  "timeRangeUpdatedDuringEditOrView": false,
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Konflux Integration Tests OCI",
+  "uid": null,
+  "version": 1,
+  "weekStart": ""
+}
