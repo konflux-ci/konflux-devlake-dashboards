@@ -18,14 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 71,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -50,26 +49,12 @@
         "content": "- **Use Cases**: This dashboard provides comprehensive Openshift CI metrics for leaders and engineering teams\n- **Data Source Required**: TestRegistry plugin with Openshift CI connection\n- **Filters**: Select by DevLake Project, Repository (shows organization/repository), Job Name, and Event Type (pull_request/push)\n- **Metrics Included**:\n  - Pipeline execution metrics (success rate, duration, volume)\n  - Test results and quality metrics\n  - Repository and event type breakdowns\n  - Trends and patterns over time",
         "mode": "markdown"
       },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "grafana"
-          },
-          "queryType": "randomWalk",
-          "refId": "A"
-        }
-      ],
+      "pluginVersion": "11.6.2",
       "title": "Dashboard Introduction",
       "type": "text"
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -78,15 +63,6 @@
       },
       "id": 2,
       "panels": [],
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "grafana"
-          },
-          "refId": "A"
-        }
-      ],
       "title": "Executive KPIs",
       "type": "row"
     },
@@ -100,8 +76,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -121,6 +96,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -128,11 +104,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -158,8 +135,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
-                "value": null
+                "color": "red"
               },
               {
                 "color": "yellow",
@@ -187,6 +163,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -194,11 +171,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -222,8 +200,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -243,6 +220,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "mean"
@@ -250,11 +228,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -278,8 +257,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
-                "value": null
+                "color": "blue"
               }
             ]
           },
@@ -299,6 +277,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "sum"
@@ -306,11 +285,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -326,10 +306,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -338,15 +314,6 @@
       },
       "id": 7,
       "panels": [],
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "grafana"
-          },
-          "refId": "A"
-        }
-      ],
       "title": "Pipeline Trends",
       "type": "row"
     },
@@ -359,17 +326,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -391,8 +363,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -463,11 +434,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -492,17 +464,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -524,8 +501,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -551,11 +527,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -573,10 +550,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -585,15 +558,6 @@
       },
       "id": 13,
       "panels": [],
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "grafana"
-          },
-          "refId": "A"
-        }
-      ],
       "title": "Test Quality Metrics",
       "type": "row"
     },
@@ -606,17 +570,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "bars",
             "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -638,8 +607,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -682,11 +650,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -709,17 +678,22 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 50,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -741,8 +715,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -786,11 +759,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "11.6.2",
       "targets": [
         {
           "datasource": "mysql",
@@ -806,27 +780,14 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 29
       },
       "id": 19,
       "panels": [],
-      "targets": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "grafana"
-          },
-          "refId": "A"
-        }
-      ],
       "title": "Detailed Pipeline List",
       "type": "row"
     },
@@ -858,17 +819,17 @@
             },
             {
               "options": {
-                "SUCCESS": {
-                  "color": "green",
-                  "index": 1
+                "ABORTED": {
+                  "color": "orange",
+                  "index": 2
                 },
                 "FAILURE": {
                   "color": "red",
                   "index": 0
                 },
-                "ABORTED": {
-                  "color": "orange",
-                  "index": 2
+                "SUCCESS": {
+                  "color": "green",
+                  "index": 1
                 }
               },
               "type": "value"
@@ -878,8 +839,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -937,7 +897,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 30
       },
       "id": 20,
       "options": {
@@ -993,8 +953,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "yellow",
@@ -1095,7 +1054,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 38
       },
       "id": 21,
       "options": {
@@ -1131,8 +1090,9 @@
       "type": "table"
     }
   ],
+  "preload": false,
   "refresh": "",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
     "Data Source Dashboard",
     "Openshift CI",
@@ -1142,13 +1102,15 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": [],
-          "value": []
+          "text": [
+            "Konflux"
+          ],
+          "value": [
+            "Konflux"
+          ]
         },
         "datasource": "mysql",
         "definition": "SELECT DISTINCT name FROM projects ORDER BY name",
-        "hide": 0,
         "includeAll": false,
         "label": "DevLake Project",
         "multi": true,
@@ -1157,20 +1119,19 @@
         "query": "SELECT DISTINCT name FROM projects ORDER BY name",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
-        "allValue": "",
         "current": {
-          "selected": false,
-          "text": [],
-          "value": []
+          "text": [
+            "redhat-appstudio/infra-deployments"
+          ],
+          "value": [
+            "infra-deployments"
+          ]
         },
         "datasource": "mysql",
         "definition": "SELECT DISTINCT CONCAT(CONCAT(j.organization, '/', j.repository), '--', j.scope_id) as text FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'prow' AND j.scope_id IS NOT NULL AND j.scope_id != '' AND pm.project_name IN (${project}) ORDER BY text",
-        "hide": 0,
         "includeAll": false,
         "label": "Repository",
         "multi": true,
@@ -1179,19 +1140,19 @@
         "query": "SELECT DISTINCT CONCAT(CONCAT(j.organization, '/', j.repository), '--', j.scope_id) as text FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'prow' AND j.scope_id IS NOT NULL AND j.scope_id != '' AND pm.project_name IN (${project}) ORDER BY text",
         "refresh": 1,
         "regex": "/^(?<text>.*)--(?<value>.*)$/",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
-          "text": [],
-          "value": []
+          "text": [
+            "periodic-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests-periodic"
+          ],
+          "value": [
+            "periodic-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests-periodic"
+          ]
         },
         "datasource": "mysql",
         "definition": "SELECT DISTINCT j.job_name FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'prow' AND j.job_name IS NOT NULL AND j.job_name != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) ORDER BY j.job_name",
-        "hide": 0,
         "includeAll": false,
         "label": "Job Name",
         "multi": true,
@@ -1200,19 +1161,19 @@
         "query": "SELECT DISTINCT j.job_name FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'prow' AND j.job_name IS NOT NULL AND j.job_name != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) ORDER BY j.job_name",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
-          "text": [],
-          "value": []
+          "text": [
+            "periodic"
+          ],
+          "value": [
+            "periodic"
+          ]
         },
         "datasource": "mysql",
         "definition": "SELECT DISTINCT j.trigger_type as event_type FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'prow' AND j.trigger_type IS NOT NULL AND j.trigger_type != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) ORDER BY j.trigger_type",
-        "hide": 0,
         "includeAll": false,
         "label": "Event Type",
         "multi": true,
@@ -1221,8 +1182,6 @@
         "query": "SELECT DISTINCT j.trigger_type as event_type FROM ci_test_jobs j LEFT JOIN project_mapping pm ON j.scope_id = pm.row_id AND pm.table = '_tool_testregistry_scopes' WHERE j.job_type = 'prow' AND j.trigger_type IS NOT NULL AND j.trigger_type != '' AND pm.project_name IN (${project}) AND j.scope_id IN (${scope_id}) AND j.job_name IN (${job_name}) ORDER BY j.trigger_type",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       }
     ]
@@ -1231,11 +1190,9 @@
     "from": "now-6M",
     "to": "now"
   },
-  "timeRangeUpdatedDuringEditOrView": false,
   "timepicker": {},
   "timezone": "utc",
   "title": "Openshift CI Dashboard",
-  "uid": null,
-  "version": 1,
-  "weekStart": ""
+  "uid": "cf30jdy3rlzwgb",
+  "version": 1
 }
