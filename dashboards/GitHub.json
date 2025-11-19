@@ -3546,6 +3546,148 @@
       "type": "barchart"
     },
     {
+      "datasource": "mysql",
+      "description": "Top failing GitHub Actions workflows by failure count",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure_rate_percent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_runs"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure_count"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure_streak"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 92
+      },
+      "id": 112,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Build Count",
+          "url": "https://devlake.apache.org/docs/Metrics/BuildCount"
+        }
+      ],
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "9.5.15",
+      "targets": [
+        {
+          "datasource": "mysql",
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "with runs as (\n  select name, result, id, finished_date\n  from cicd_pipelines\n  where $__timeFilter(finished_date)\n    and id like \"%github%\"\n    and cicd_scope_id in (${repo_id})\n), runs_all as (\n  select name, result, id, finished_date\n  from cicd_pipelines\n  where id like \"%github%\"\n    and cicd_scope_id in (${repo_id})\n), agg as (\n  select name,\n         count(*) as total_runs,\n         sum(case when result = 'FAILURE' then 1 else 0 end) as failure_count\n  from runs\n  group by name\n), last_non_failure as (\n  select name, max(finished_date) as last_non_failure_finished\n  from runs_all\n  where result <> 'FAILURE'\n  group by name\n), streak as (\n  select r.name, count(*) as failure_streak\n  from runs_all r\n  left join last_non_failure lnf on lnf.name = r.name\n  where r.result = 'FAILURE'\n    and (lnf.last_non_failure_finished is null or r.finished_date > lnf.last_non_failure_finished)\n  group by r.name\n)\nselect \n  coalesce(a.name, '(unknown)') as workflow_name,\n  a.failure_count,\n  a.total_runs,\n  coalesce(s.failure_streak, 0) as failure_streak,\n  round(100.0 * a.failure_count / a.total_runs, 2) as failure_rate_percent\nfrom agg a\nleft join streak s on s.name = a.name\nwhere a.failure_count > 0\nlimit 20",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "type": "column",
+                "params": [
+                  "id"
+                ]
+              }
+            ]
+          ],
+          "table": "cicd_pipelines",
+          "timeColumn": "finished_date",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "5.8 Top Failing Workflows",
+      "type": "table"
+    },
+    {
       "datasource": {
         "type": "datasource",
         "uid": "grafana"
@@ -3554,7 +3696,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 92
+        "y": 98
       },
       "id": 101,
       "options": {
