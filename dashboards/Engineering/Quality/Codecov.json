@@ -1,0 +1,754 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 44,
+    "links": [],
+    "panels": [
+      {
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "code": {
+            "language": "plaintext",
+            "showLineNumbers": false,
+            "showMiniMap": false
+          },
+          "content": "- **Use Cases**: This dashboard shows code coverage metrics from Codecov organized by flags (test types).\n- **Data Source Required**: Codecov\n- **Metrics**: Overall Coverage (per flag), Lines Coverage (per flag), and Patch Coverage (repository-wide)\n- **Multi-Repo**: Select multiple repositories or \"All\" to see aggregated metrics (average coverage %, summed line counts) and per-repo trend comparison.\n- **Patch Coverage**: Shows how well changed code is tested. Calculated by Codecov from actual git diffs. Note: Patch coverage is the same for all flags as it measures repository-wide coverage of changed code.",
+          "mode": "markdown"
+        },
+        "pluginVersion": "11.6.2",
+        "title": "Dashboard Introduction",
+        "type": "text"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 4
+        },
+        "id": 7,
+        "panels": [],
+        "title": "Test Name: ${flag_name}",
+        "type": "row"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Average code coverage percentage across selected repositories for the selected test type (flag). When a single repo is selected, shows that repo's latest coverage.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red"
+                },
+                {
+                  "color": "yellow",
+                  "value": 50
+                },
+                {
+                  "color": "green",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "percent",
+            "decimals": 2
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 5
+        },
+        "id": 8,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT ROUND(AVG(latest_coverage), 2) as value\nFROM (\n  SELECT t.repo_id, t.coverage_percentage as latest_coverage\n  FROM _tool_codecov_coverage_trends t\n  INNER JOIN project_mapping pm ON t.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n  WHERE pm.project_name = '${project}'\n    AND t.repo_id IN (${repo_id})\n    AND t.flag_name = '${flag_name}'\n    AND t.date = (\n      SELECT MAX(t2.date) FROM _tool_codecov_coverage_trends t2\n      WHERE t2.repo_id = t.repo_id AND t2.flag_name = t.flag_name\n    )\n) per_repo",
+            "refId": "A"
+          }
+        ],
+        "title": "Overall Coverage",
+        "type": "stat"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Total number of lines of code tracked across selected repositories for the selected test type (flag)",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "blue"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 6,
+          "y": 5
+        },
+        "id": 9,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT COALESCE(SUM(latest_total), 0) as value\nFROM (\n  SELECT c.lines_total as latest_total\n  FROM _tool_codecov_coverages c\n  INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n  WHERE pm.project_name = '${project}'\n    AND c.repo_id IN (${repo_id})\n    AND c.flag_name = '${flag_name}'\n    AND c.lines_total > 0\n    AND c.commit_timestamp = (\n      SELECT MAX(c2.commit_timestamp) FROM _tool_codecov_coverages c2\n      WHERE c2.repo_id = c.repo_id AND c2.flag_name = c.flag_name AND c2.lines_total > 0\n    )\n) per_repo",
+            "refId": "A"
+          }
+        ],
+        "title": "Total Lines",
+        "type": "stat"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Number of lines covered across selected repositories for the selected test type (flag)",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 5
+        },
+        "id": 10,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT COALESCE(SUM(latest_covered), 0) as value\nFROM (\n  SELECT c.lines_covered as latest_covered\n  FROM _tool_codecov_coverages c\n  INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n  WHERE pm.project_name = '${project}'\n    AND c.repo_id IN (${repo_id})\n    AND c.flag_name = '${flag_name}'\n    AND c.lines_total > 0\n    AND c.commit_timestamp = (\n      SELECT MAX(c2.commit_timestamp) FROM _tool_codecov_coverages c2\n      WHERE c2.repo_id = c.repo_id AND c2.flag_name = c.flag_name AND c2.lines_total > 0\n    )\n) per_repo",
+            "refId": "A"
+          }
+        ],
+        "title": "Lines Covered",
+        "type": "stat"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Number of lines NOT covered across selected repositories for the selected test type (flag). Calculated as: Total Lines - Lines Covered",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 5
+        },
+        "id": 11,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT COALESCE(SUM(lines_uncovered), 0) as value\nFROM (\n  SELECT (c.lines_total - c.lines_covered) as lines_uncovered\n  FROM _tool_codecov_coverages c\n  INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n  WHERE pm.project_name = '${project}'\n    AND c.repo_id IN (${repo_id})\n    AND c.flag_name = '${flag_name}'\n    AND c.lines_total > 0\n    AND c.commit_timestamp = (\n      SELECT MAX(c2.commit_timestamp) FROM _tool_codecov_coverages c2\n      WHERE c2.repo_id = c.repo_id AND c2.flag_name = c.flag_name AND c2.lines_total > 0\n    )\n) per_repo",
+            "refId": "A"
+          }
+        ],
+        "title": "Uncovered Lines",
+        "type": "stat"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Historical trend of overall coverage percentage for the selected test type (flag). Shows one line per selected repository for comparison.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": true,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 2,
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 11
+        },
+        "id": 12,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "time_series",
+            "rawQuery": true,
+            "rawSql": "SELECT\n  UNIX_TIMESTAMP(t.date) as time_sec,\n  ROUND(t.coverage_percentage, 2) as value,\n  t.repo_id as metric\nFROM _tool_codecov_coverage_trends t\nINNER JOIN project_mapping pm ON t.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\nWHERE pm.project_name = '${project}'\n  AND t.repo_id IN (${repo_id})\n  AND t.flag_name = '${flag_name}'\n  AND t.date >= DATE($__timeFrom())\n  AND t.date <= DATE($__timeTo())\nORDER BY t.date",
+            "refId": "A"
+          }
+        ],
+        "title": "Overall Coverage Trend",
+        "type": "timeseries"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Average patch coverage across selected repositories. Shows how well changed code is tested. Calculated by Codecov from actual git diffs. Note: Patch coverage is repository-wide (same for all flags).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red"
+                },
+                {
+                  "color": "yellow",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 0.01
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 11
+        },
+        "id": 13,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT ROUND(AVG(repo_patch), 2) as value\nFROM (\n  SELECT sub.repo_id, AVG(sub.patch_per_commit) as repo_patch\n  FROM (\n    SELECT comp.repo_id, comp.commit_sha, MAX(comp.patch) as patch_per_commit\n    FROM _tool_codecov_comparisons comp\n    INNER JOIN _tool_codecov_commits cm ON comp.connection_id = cm.connection_id AND comp.repo_id = cm.repo_id AND comp.commit_sha = cm.commit_sha\n    INNER JOIN project_mapping pm ON comp.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n    WHERE pm.project_name = '${project}'\n      AND comp.repo_id IN (${repo_id})\n      AND comp.patch IS NOT NULL\n      AND cm.commit_timestamp >= $__timeFrom()\n      AND cm.commit_timestamp <= $__timeTo()\n    GROUP BY comp.repo_id, comp.commit_sha\n  ) sub\n  GROUP BY sub.repo_id\n) per_repo",
+            "refId": "A"
+          }
+        ],
+        "title": "Patch Coverage",
+        "type": "stat"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Historical trend of lines covered vs total lines for the selected test type (flag). Shows summed values across all selected repositories. Blue line shows total lines tracked, green line shows lines covered.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": true,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Lines Covered"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Lines Total"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 19
+        },
+        "id": 14,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "time_series",
+            "rawQuery": true,
+            "rawSql": "SELECT\n  UNIX_TIMESTAMP(daily.day) as time_sec,\n  SUM(daily.lines_covered) as 'Lines Covered',\n  SUM(daily.lines_total) as 'Lines Total'\nFROM (\n  SELECT c.repo_id, DATE(c.commit_timestamp) as day, c.lines_covered, c.lines_total,\n    ROW_NUMBER() OVER (PARTITION BY c.repo_id, DATE(c.commit_timestamp) ORDER BY c.commit_timestamp DESC) as rn\n  FROM _tool_codecov_coverages c\n  INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n  WHERE pm.project_name = '${project}'\n    AND c.repo_id IN (${repo_id})\n    AND c.flag_name = '${flag_name}'\n    AND c.lines_total > 0\n    AND c.commit_timestamp >= $__timeFrom()\n    AND c.commit_timestamp <= $__timeTo()\n) daily\nWHERE daily.rn = 1\nGROUP BY daily.day\nORDER BY time_sec",
+            "refId": "A"
+          }
+        ],
+        "title": "Lines Coverage Trend",
+        "type": "timeseries"
+      },
+      {
+        "datasource": "mysql",
+        "description": "Daily repository-wide patch coverage from Codecov. Shows one line per selected repository for comparison. Calculated by Codecov from actual git diffs. Days without changes show no data point (gaps are connected).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": true,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 2,
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 27
+        },
+        "id": 15,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.6.2",
+        "targets": [
+          {
+            "datasource": "mysql",
+            "editorMode": "code",
+            "format": "time_series",
+            "rawQuery": true,
+            "rawSql": "SELECT\n  UNIX_TIMESTAMP(sub.day) as time_sec,\n  ROUND(AVG(sub.max_patch), 2) as value,\n  sub.repo_id as metric\nFROM (\n  SELECT comp.repo_id, comp.commit_sha, DATE(cm.commit_timestamp) as day, MAX(comp.patch) as max_patch\n  FROM _tool_codecov_comparisons comp\n  INNER JOIN _tool_codecov_commits cm ON comp.connection_id = cm.connection_id AND comp.repo_id = cm.repo_id AND comp.commit_sha = cm.commit_sha\n  INNER JOIN project_mapping pm ON comp.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos'\n  WHERE pm.project_name = '${project}'\n    AND comp.repo_id IN (${repo_id})\n    AND comp.patch IS NOT NULL\n    AND cm.commit_timestamp >= $__timeFrom()\n    AND cm.commit_timestamp <= $__timeTo()\n  GROUP BY comp.repo_id, comp.commit_sha, DATE(cm.commit_timestamp)\n) sub\nGROUP BY sub.day, sub.repo_id\nORDER BY time_sec",
+            "refId": "A"
+          }
+        ],
+        "title": "Patch Coverage Trend",
+        "type": "timeseries"
+      }
+    ],
+    "preload": false,
+    "refresh": "",
+    "schemaVersion": 41,
+    "tags": [
+      "codecov",
+      "coverage",
+      "testing"
+    ],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "Konflux",
+            "value": "Konflux"
+          },
+          "datasource": "mysql",
+          "definition": "SELECT DISTINCT name FROM projects ORDER BY name LIMIT 1",
+          "includeAll": false,
+          "label": "Project",
+          "name": "project",
+          "options": [],
+          "query": "SELECT DISTINCT name FROM projects ORDER BY name",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        },
+        {
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "mysql",
+          "definition": "SELECT DISTINCT c.repo_id FROM _tool_codecov_coverages c INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos' WHERE pm.project_name = '${project}' ORDER BY c.repo_id LIMIT 1",
+          "includeAll": true,
+          "multi": true,
+          "label": "Repository",
+          "name": "repo_id",
+          "options": [],
+          "query": "SELECT DISTINCT c.repo_id FROM _tool_codecov_coverages c INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos' WHERE pm.project_name = '${project}' ORDER BY c.repo_id",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        },
+        {
+          "current": {
+            "text": "unittests",
+            "value": "unittests"
+          },
+          "datasource": "mysql",
+          "definition": "SELECT DISTINCT c.flag_name FROM _tool_codecov_coverages c INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos' WHERE pm.project_name = '${project}' AND c.repo_id IN (${repo_id}) AND c.flag_name != '' AND c.flag_name IS NOT NULL ORDER BY c.flag_name LIMIT 1",
+          "includeAll": false,
+          "label": "Test Name",
+          "name": "flag_name",
+          "options": [],
+          "query": "SELECT DISTINCT c.flag_name FROM _tool_codecov_coverages c INNER JOIN project_mapping pm ON c.repo_id = pm.row_id AND pm.table = '_tool_codecov_repos' WHERE pm.project_name = '${project}' AND c.repo_id IN (${repo_id}) AND c.flag_name != '' AND c.flag_name IS NOT NULL ORDER BY c.flag_name",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "utc",
+    "title": "Codecov",
+    "uid": "d790dc8cd069c2",
+    "version": 1
+  }
