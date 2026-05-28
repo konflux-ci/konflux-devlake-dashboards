@@ -160,7 +160,7 @@
       "datasource": "${DS_DEVLAKE}",
       "targets": [
         {
-          "rawSql": "SELECT\n  DATE(assessed_at) AS time,\n  AVG(overall_score) AS 'Average Score'\nFROM _tool_agentready_assessments\nWHERE id != '' AND $__timeFilter(assessed_at)\nGROUP BY DATE(assessed_at)\nORDER BY time",
+          "rawSql": "SELECT\n  DATE(a.assessed_at) AS time,\n  AVG(a.overall_score) AS 'Average Score'\nFROM _tool_agentready_assessments a\nINNER JOIN (\n  SELECT repo_id, DATE(assessed_at) AS day, MAX(assessed_at) AS max_assessed\n  FROM _tool_agentready_assessments\n  WHERE id != ''\n  GROUP BY repo_id, DATE(assessed_at)\n) latest ON a.repo_id = latest.repo_id AND DATE(a.assessed_at) = latest.day AND a.assessed_at = latest.max_assessed\nWHERE $__timeFilter(a.assessed_at)\nGROUP BY DATE(a.assessed_at)\nORDER BY time",
           "format": "time_series",
           "refId": "A"
         }
